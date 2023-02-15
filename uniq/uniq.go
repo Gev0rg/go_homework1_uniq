@@ -19,7 +19,7 @@ var numChars int
 var caseInsensitive bool
 
 // Check all flags
-func checkFlags() error {
+func checkFlags() {
 	// Init Flags
 	flag.BoolVar(&numOccurrencesStrings, "c", false, "print the number of string occurrences")
 	flag.BoolVar(&onlyOccurrencesStrings, "d", false, "print only occurrences inputStrings")
@@ -30,8 +30,6 @@ func checkFlags() error {
 
 	// Check for having the flags
 	flag.Parse()
-
-	return nil
 }
 
 // Get unique strings from inputStrings
