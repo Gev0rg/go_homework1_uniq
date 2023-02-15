@@ -1,11 +1,7 @@
-package main
+package uniq
 
 import (
-	"bufio"
 	"flag"
-	"fmt"
-	"io"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -19,7 +15,7 @@ var numChars int
 var caseInsensitive bool
 
 // Check all flags
-func checkFlags() {
+func CheckFlags() {
 	// Init Flags
 	flag.BoolVar(&numOccurrencesStrings, "c", false, "print the number of string occurrences")
 	flag.BoolVar(&onlyOccurrencesStrings, "d", false, "print only occurrences inputStrings")
@@ -33,7 +29,7 @@ func checkFlags() {
 }
 
 // Get unique strings from inputStrings
-func getUniqSlice (inputStrings []string, compareStrings []string) ([]string, []int) {
+func GetUniqSlice (inputStrings []string, compareStrings []string) ([]string, []int) {
 	outputStrings := []string{}
 	numStrings := []int{}
 	numStrings = append(numStrings, 0)
@@ -57,7 +53,7 @@ func getUniqSlice (inputStrings []string, compareStrings []string) ([]string, []
 }
 
 // Get output strings from inputStrings
-func getOutputSlice(inputStrings[]string) []string {
+func GetOutputSlice(inputStrings[]string) []string {
 	// Create slice to store the lines for compare after flag parsing
 	compareStrings := make([]string, len(inputStrings))
 	copy(compareStrings, inputStrings)
@@ -85,7 +81,7 @@ func getOutputSlice(inputStrings[]string) []string {
     }
 
 	// Create slice to store the result lines
-	compareStrings, numStrings := getUniqSlice(inputStrings, compareStrings)
+	compareStrings, numStrings := GetUniqSlice(inputStrings, compareStrings)
 
 	if numOccurrencesStrings {
 		for i, s := range compareStrings {
@@ -95,13 +91,13 @@ func getOutputSlice(inputStrings[]string) []string {
 
 	outputStrings := []string{}
     if onlyOccurrencesStrings && !onlyNotOccurrencesStrings {
-		for i, s := range outputStrings {
+		for i, s := range compareStrings {
 			if numStrings[i] > 1 {
 				outputStrings = append(outputStrings, s)
 			}
 		}
 	} else if !onlyOccurrencesStrings && onlyNotOccurrencesStrings {
-		for i, s := range outputStrings {
+		for i, s := range compareStrings {
 			if numStrings[i] == 1 {
 				outputStrings = append(outputStrings, s)
 			}
@@ -111,58 +107,4 @@ func getOutputSlice(inputStrings[]string) []string {
 	}
 
 	return outputStrings
-}
-
-func main() {
-	// Check for having the input file
-	var in io.Reader
-	if inputFile := flag.Arg(0); inputFile != "" {
-		f, err := os.Open(inputFile)
-		if err != nil {
-			fmt.Println("error opening file: err:", err)
-			os.Exit(1)
-		}
-		defer f.Close()
-
-		in = f
-	} else {
-		in = os.Stdin
-	}
-
-	// Check for having the output file
-	var out io.Writer
-	if outputFile := flag.Arg(1); outputFile != "" {
-		f, err := os.Create(outputFile)
-		if err != nil {
-			fmt.Println("error opening file: err:", err)
-			os.Exit(1)
-		}
-		defer f.Close()
-
-		out = f
-	} else {
-		out = os.Stdout
-	}
-
-	// Check for having the flags
-	checkFlags()
-
-	// Create the scanner
-	inBuf := bufio.NewScanner(in)
-	// Create slice to store the input lines
-	inputStrings := []string{}
-	for ; inBuf.Scan(); {
-		inputStrings = append(inputStrings, inBuf.Text()) 
-	}
-	// Check for errors from the scanner
-	if err := inBuf.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "error reading: err:", err)
-	}
-
-	// Get the output strings
-	outputStrings := getOutputSlice(inputStrings)
-
-	for _, s := range outputStrings {
-		fmt.Fprintln(out, s)
-	}
 }
