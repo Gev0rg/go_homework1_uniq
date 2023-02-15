@@ -6,8 +6,32 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
+
+func getOutputSlice(inputStrings []string, compareStrings []string) ([]string, []int) {
+	outputStrings := []string{}
+	numStrings := []int{}
+	numStrings = append(numStrings, 0)
+
+	indexNumStrings := 0
+	prev := 0
+	for i, s := range compareStrings {
+		if s == compareStrings[prev] {
+			numStrings[indexNumStrings]++
+			continue
+		}
+		outputStrings = append(outputStrings, inputStrings[prev])
+		numStrings = append(numStrings, 0)
+		indexNumStrings++
+		numStrings[indexNumStrings]++
+		prev = i
+	}
+	outputStrings = append(outputStrings, inputStrings[prev])
+
+	return outputStrings, numStrings
+}
 
 func main() {
 	// All Flags
@@ -57,8 +81,40 @@ func main() {
 		fmt.Fprintln(os.Stderr, "error reading: err:", err)
 	}
 
+	// Create slice to store the lines for compare after flag parsing
+	compareStrings := make([]string, len(inputStrings))
+	copy(compareStrings, inputStrings)
+
+	// Flag parsing
+	if caseInsensitive {
+		for i, s := range compareStrings {
+			compareStrings[i] = strings.ToLower(s)
+		}
+	}
+
+	if numFields != 0 {
+		for i, s := range compareStrings {
+            arr := strings.Split(s, " ")[numFields:]
+			compareStrings[i] = strings.Join(arr, " ")
+        }
+	}
+
+	if numChars != 0 {
+		for i, s := range compareStrings {
+			if compareStrings[i] != "" {
+				compareStrings[i] = s[numChars:]
+			}
+        }
+    }
+
 	// Create slice to store the result lines
-	outputStrings := []string{}
+	outputStrings, numStrings := getOutputSlice(inputStrings, compareStrings)
+
+	if numOccurrencesStrings {
+		for i, s := range outputStrings {
+			outputStrings[i] = strconv.Itoa(numStrings[i]) + " " + s
+		}
+    }
 
 	// Check for having the output file
 	var out io.Writer
@@ -73,21 +129,23 @@ func main() {
 		out = f
 	} else {
 		out = os.Stdout
-    }
-
-	if caseInsensitive {
-		var prev string
-		for _, s := range inputStrings {
-			if strings.ToLower(s) == strings.ToLower(prev) {
-                continue
-            }
-			outputStrings = append(outputStrings, prev)
-            prev = s
-		}
-		outputStrings = append(outputStrings, prev)
 	}
 
-	for _, s := range outputStrings[1:] {
-		fmt.Fprintln(out, s)
+    if onlyOccurrencesStrings && !onlyNotOccurrencesStrings {
+		for i, s := range outputStrings {
+			if numStrings[i] > 1 {
+				fmt.Fprintln(out, s)
+			}
+		}
+	} else if !onlyOccurrencesStrings && onlyNotOccurrencesStrings {
+		for i, s := range outputStrings {
+			if numStrings[i] == 1 {
+				fmt.Fprintln(out, s)
+			}
+		}		
+	} else {
+		for _, s := range outputStrings {
+			fmt.Fprintln(out, s)
+		}
 	}
 }
