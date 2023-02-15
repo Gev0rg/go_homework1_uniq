@@ -1,7 +1,7 @@
-package test
+package main
 
 import (
-	uniq "../uniq/uniq.go"
+    "github.com/Gev0rg/go_homework1_uniq/uniq"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
