@@ -122,6 +122,7 @@ func Calc (arrFromStr []string) (int, error) {
 	var err error = nil
 	prev := arrFromStr[0]
 	var stack stack.Stack
+	stack.Push(prev)
 	
 	for i := 1 ;i < len(arrFromStr); i++ {
 		if contains(arrFromStr[i]) {
@@ -136,8 +137,8 @@ func Calc (arrFromStr []string) (int, error) {
 			if isOneBasic(prev, arrFromStr[i]) {
 				exp := stack.Pop()
 				stack.Pop()
-				stack.Push(exp)
 				prev = fmt.Sprintf("%v", stack.Peek())
+				stack.Push(exp)
 				continue
 			}
 			if isEndOfBase(prev, arrFromStr[i]) {
@@ -155,6 +156,7 @@ func Calc (arrFromStr []string) (int, error) {
 				i--
 				continue
 			}
+			prev = arrFromStr[i]
 		}
 		stack.Push(arrFromStr[i])
 	}
