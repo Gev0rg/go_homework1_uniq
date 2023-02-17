@@ -13,7 +13,7 @@ func main () {
 	inBuf.Scan()
 	// Create string to store the input lines
 	str := inBuf.Text()
-
+	// Check right input
 	arrFromStr, err := calc.IsCorrectInput(str) 
 	if err != nil {
         fmt.Println(err)
