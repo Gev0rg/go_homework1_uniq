@@ -108,7 +108,7 @@ func calculate (firstArg string, operation string, secondArg string) (string, er
 		result = fmt.Sprint(left - right)
 	} else if operation == "*" {
         result = fmt.Sprint(left * right)
-	} else if operation == "/" {
+	} else if operation == "/" && right != 0 {
         result = fmt.Sprint(left / right)
 	} else {
 		err = errors.New("Invalid operation " + operation)

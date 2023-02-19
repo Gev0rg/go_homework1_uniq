@@ -49,119 +49,119 @@ func TestIsOneBasicFalse (t *testing.T) {
     assert.False(isOneBasic("(", "end"))
 }
 
+var isEndOfBaseTrueTests = []struct {
+	prev  string
+	current string
+}{
+	{"+", "-"},
+	{"-", "-"},
+	{"*", "-"},
+	{"/", "+"},
+	{")", ")"},
+	{")", "end"},
+}
+
 func TestIsEndOfBaseTrue (t *testing.T) {
 	assert := assert.New(t)
-    assert.True(isEndOfBase("+", "-"))
-	assert.True(isEndOfBase("-", "-"))
-	assert.True(isEndOfBase("*", "-"))
-	assert.True(isEndOfBase("/", "+"))
-	assert.True(isEndOfBase(")", ")"))
-	assert.True(isEndOfBase(")", "end"))
+
+	for _, v := range isEndOfBaseTrueTests {
+		assert.True(isEndOfBase(v.prev, v.current))
+    }
+}
+
+var isEndOfBaseFalseTests = []struct {
+	prev  string
+	current string
+}{
+	{"start", "end"},
+	{"(", ")"},
+	{")", "("},
+	{"start", "*"},
+	{"(", "+"},
+	{"*", "("},
 }
 
 func TestIsEndOfBaseFalse (t *testing.T) {
 	assert := assert.New(t)
-    assert.False(isEndOfBase("start", "end"))
-	assert.False(isEndOfBase("(", ")"))
-	assert.False(isEndOfBase(")", "("))
-	assert.False(isEndOfBase("start", "*"))
-	assert.False(isEndOfBase("(", "+"))
-	assert.False(isEndOfBase("*", "("))
+
+    for _, v := range isEndOfBaseFalseTests {
+		assert.False(isEndOfBase(v.prev, v.current))
+	}
 }
 
-func TestCalculatePlus(t *testing.T) {
+var CalculateTrueTests = []struct {
+	left  string
+	operation string
+	right string
+	result string
+}{
+	{"5", "+", "3", "8"},
+	{"5", "-", "3", "2"},
+	{"5", "*", "3", "15"},
+	{"9", "/", "3", "3"},
+}
+
+func TestCalculateTrue(t *testing.T) {
 	assert := assert.New(t)
-    result, err := calculate("5", "+", "3")
-    assert.Nil(err)
-    assert.Equal(result, "8")
+
+	for _, v := range CalculateTrueTests {
+		result, err := calculate(v.left, v.operation, v.right)
+		assert.Nil(err)
+		assert.Equal(result, v.result)
+    }
 }
 
-func TestCalculateSub(t *testing.T) {
+var CalculateFalseTests = []struct {
+	left  string
+	operation string
+	right string
+}{
+	{"5", "^", "3"},
+	{"a", "/", "3"},
+	{"5", "^", "v"},
+	{"6", "/", "0"},
+}
+
+func TestCalculateFalse(t *testing.T) {
 	assert := assert.New(t)
-    result, err := calculate("5", "-", "3")
-    assert.Nil(err)
-    assert.Equal(result, "2")
-}
-func TestCalculateProd(t *testing.T) {
-	assert := assert.New(t)
-    result, err := calculate("5", "*", "3")
-    assert.Nil(err)
-    assert.Equal(result, "15")
-}
-func TestCalculateQuot(t *testing.T) {
-	assert := assert.New(t)
-    result, err := calculate("9", "/", "3")
-    assert.Nil(err)
-    assert.Equal(result, "3")
+
+	for _, v := range CalculateFalseTests {
+		_, err := calculate(v.left, v.operation, v.right)
+		assert.Error(err)
+    }
 }
 
-func TestCalculateErr1(t *testing.T) {
-	assert := assert.New(t)
-    _, err := calculate("5", "^", "3")
-    assert.Error(err)
+var CalcTrueTests = []struct {
+	slice []string
+	result int
+}{
+	{[]string{"start", "1", "+", "3", "*", "5", "end"}, 16},
+	{[]string{"start", "(", "1", "+", "3", ")", "*", "5", "end"}, 20},
+	{[]string{"start", "(", "1", "+", "3", ")", "*", "(", "5", "-", "4", ")", "end"}, 4},
+	{[]string{"start", "(", "1", ")", "+", "3", "*", "(", "5", "-", "4", ")", "end"}, 4},
 }
 
-func TestCalculateErr2(t *testing.T) {
-	assert := assert.New(t)
-    _, err := calculate("a", "/", "3")
-    assert.Error(err)
-}
-
-func TestCalculateErr3(t *testing.T) {
-	assert := assert.New(t)
-    _, err := calculate("5", "^", "v")
-    assert.Error(err)
-}
-
-func TestCalcRight1(t *testing.T) {
+func TestCalcTrue(t *testing.T) {
     assert := assert.New(t)
-	arrFromStr := []string{"start", "1", "+", "3", "*", "5", "end"}
-	result, err := Calc(arrFromStr)
-    assert.Nil(err)
-	assert.Equal(result, 16)
+	for _, v := range CalcTrueTests {
+		result, err := Calc(v.slice)
+        assert.Nil(err)
+        assert.Equal(result, v.result)
+    }
 }
 
-func TestCalcRight2(t *testing.T) {
-    assert := assert.New(t)
-	arrFromStr := []string{"start", "(", "1", "+", "3", ")", "*", "5", "end"}
-	result, err := Calc(arrFromStr)
-    assert.Nil(err)
-	assert.Equal(result, 20)
+var CalcFalseTests = []struct {
+	slice []string
+}{
+	{[]string{"start", ")", "1", "+", "3", ")", "*", "5", "end"}},
+	{[]string{"start", "(", "1", "+", "(", "3", ")", "*", "5", "end"}},
+	{[]string{"start", "(", "1", "+", "(", "b", ")", "*", "5", "end"}},
 }
 
-func TestCalcRight3(t *testing.T) {
+func TestCalcFalse(t *testing.T) {
     assert := assert.New(t)
-	arrFromStr := []string{"start", "(", "1", "+", "3", ")", "*", "(", "5", "-", "4", ")", "end"}
-	result, err := Calc(arrFromStr)
-    assert.Nil(err)
-	assert.Equal(result, 4)
-}
-
-func TestCalcRight4(t *testing.T) {
-    assert := assert.New(t)
-	arrFromStr := []string{"start", "(", "1", ")", "+", "3", "*", "(", "5", "-", "4", ")", "end"}
-	result, err := Calc(arrFromStr)
-    assert.Nil(err)
-	assert.Equal(result, 4)
-}
-
-func TestCalcErr1(t *testing.T) {
-    assert := assert.New(t)
-	arrFromStr := []string{"start", ")", "1", "+", "3", ")", "*", "5", "end"}
-	_, err := Calc(arrFromStr)
-    assert.Error(err)
-}
-
-func TestCalcErr2(t *testing.T) {
-    assert := assert.New(t)
-	arrFromStr := []string{"start", "(", "1", "+", "(", "3", ")", "*", "5", "end"}
-	_, err := Calc(arrFromStr)
-    assert.Error(err)
-}
-
-func TestCalcErr3(t *testing.T) {
-    assert := assert.New(t)
-	arrFromStr := []string{"start", "(", "1", "+", "(", "b", ")", "*", "5", "end"}
-	_, err := Calc(arrFromStr)
-    assert.Error(err)
+	for _, v := range CalcFalseTests {
+		_, err := Calc(v.slice)
+        assert.Error(err)
+    }
 }
