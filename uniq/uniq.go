@@ -1,108 +1,119 @@
 package uniq
 
 import (
+	"errors"
 	"flag"
 	"strconv"
 	"strings"
 )
 
 // All Flags
-var numOccurrencesStrings bool
-var onlyOccurrencesStrings bool
-var onlyNotOccurrencesStrings bool
-var numFields int
-var numChars int
-var caseInsensitive bool
+var Options struct {
+	numOccurrencesStrings     bool
+	onlyOccurrencesStrings    bool
+	onlyNotOccurrencesStrings bool
+	numFields                 int
+	numChars                  int
+	caseInsensitive           bool
+}
 
 // Check all flags
-func CheckFlags() {
+func CheckFlags() (error) {
 	// Init Flags
-	flag.BoolVar(&numOccurrencesStrings, "c", false, "print the number of string occurrences")
-	flag.BoolVar(&onlyOccurrencesStrings, "d", false, "print only occurrences inputStrings")
-	flag.BoolVar(&onlyNotOccurrencesStrings, "u", false, "print only not occurrences inputStrings")
-	flag.IntVar(&numFields, "f", 0, "number of fields to skip from the string")
-	flag.IntVar(&numChars, "s", 0, "number of characters to skip from the string")
-	flag.BoolVar(&caseInsensitive, "i", false, "case-insensitive")
+	flag.BoolVar(&Options.numOccurrencesStrings, "c", false, "print the number of string occurrences")
+	flag.BoolVar(&Options.onlyOccurrencesStrings, "d", false, "print only occurrences inputStrings")
+	flag.BoolVar(&Options.onlyNotOccurrencesStrings, "u", false, "print only not occurrences inputStrings")
+	flag.IntVar(&Options.numFields, "f", 0, "number of fields to skip from the string")
+	flag.IntVar(&Options.numChars, "s", 0, "number of characters to skip from the string")
+	flag.BoolVar(&Options.caseInsensitive, "i", false, "case-insensitive")
 
 	// Check for having the flags
 	flag.Parse()
+
+	if Options.onlyOccurrencesStrings && Options.onlyNotOccurrencesStrings {
+		return errors.New("flags -d and -u are used simultaneously")
+	}
+
+	return nil
 }
 
 // Get unique strings from inputStrings
-func GetUniqSlice (inputStrings []string, compareStrings []string) ([]string, []int) {
+func GetUniqSlice(inputStrings []string, compareStrings []string) ([]string, []int) {
 	outputStrings := []string{}
-	numStrings := []int{}
-	numStrings = append(numStrings, 0)
+	numRepeatStrings := []int{}
+	numRepeatStrings = append(numRepeatStrings, 0)
 
-	indexNumStrings := 0
+	indexNumRepeatStrings := 0
 	prev := 0
 	for i, s := range compareStrings {
 		if s == compareStrings[prev] {
-			numStrings[indexNumStrings]++
+			numRepeatStrings[indexNumRepeatStrings]++
 			continue
 		}
 		outputStrings = append(outputStrings, inputStrings[prev])
-		numStrings = append(numStrings, 0)
-		indexNumStrings++
-		numStrings[indexNumStrings]++
+		numRepeatStrings = append(numRepeatStrings, 0)
+		indexNumRepeatStrings++
+		numRepeatStrings[indexNumRepeatStrings]++
 		prev = i
 	}
 	outputStrings = append(outputStrings, inputStrings[prev])
 
-	return outputStrings, numStrings
+	return outputStrings, numRepeatStrings
 }
 
 // Get output strings from inputStrings
-func GetOutputSlice(inputStrings[]string) []string {
+func GetOutputSlice(inputStrings []string) []string {
 	// Create slice to store the lines for compare after flag parsing
 	compareStrings := make([]string, len(inputStrings))
 	copy(compareStrings, inputStrings)
 
 	// Flag parsing
-	if caseInsensitive {
+	if Options.caseInsensitive {
 		for i, s := range compareStrings {
 			compareStrings[i] = strings.ToLower(s)
 		}
 	}
 
-	if numFields != 0 {
+	if Options.numFields != 0 {
 		for i, s := range compareStrings {
-            arr := strings.Split(s, " ")[numFields:]
+			arr := strings.Split(s, " ")[Options.numFields:]
 			compareStrings[i] = strings.Join(arr, " ")
-        }
+		}
 	}
 
-	if numChars != 0 {
+	if Options.numChars != 0 {
 		for i, s := range compareStrings {
 			if compareStrings[i] != "" {
-				compareStrings[i] = s[numChars:]
+				compareStrings[i] = s[Options.numChars:]
 			}
-        }
-    }
+		}
+	}
 
 	// Create slice to store the result lines
-	compareStrings, numStrings := GetUniqSlice(inputStrings, compareStrings)
+	compareStrings, numRepeatStrings := GetUniqSlice(inputStrings, compareStrings)
 
-	if numOccurrencesStrings {
+	if Options.numOccurrencesStrings {
 		for i, s := range compareStrings {
-			compareStrings[i] = strconv.Itoa(numStrings[i]) + " " + s
+			compareStrings[i] = strconv.Itoa(numRepeatStrings[i]) + " " + s
 		}
-    }
+	}
 
 	outputStrings := []string{}
-    if onlyOccurrencesStrings && !onlyNotOccurrencesStrings {
+
+	switch(true) {
+	case Options.onlyOccurrencesStrings:
 		for i, s := range compareStrings {
-			if numStrings[i] > 1 {
+			if numRepeatStrings[i] > 1 {
 				outputStrings = append(outputStrings, s)
 			}
 		}
-	} else if !onlyOccurrencesStrings && onlyNotOccurrencesStrings {
+	case Options.onlyNotOccurrencesStrings:
 		for i, s := range compareStrings {
-			if numStrings[i] == 1 {
+			if numRepeatStrings[i] == 1 {
 				outputStrings = append(outputStrings, s)
 			}
-		}		
-	} else {
+		}
+	default:
 		outputStrings = compareStrings
 	}
 

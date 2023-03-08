@@ -23,9 +23,9 @@ func TestGetOutputSlice1(t *testing.T) {
 func TestGetOutputSlice2(t *testing.T) {
     assert := assert.New(t)
 
-    numOccurrencesStrings = true
-    onlyOccurrencesStrings = true
-    numFields = 1
+    Options.numOccurrencesStrings = true
+    Options.onlyOccurrencesStrings = true
+    Options.numFields = 1
 
     slice := []string{"My Father", "Your Father", "Our Mother", "My Son", "Your Son", "Our Son"}
 
@@ -34,17 +34,17 @@ func TestGetOutputSlice2(t *testing.T) {
     assert.Equal(uniq[0], "2 My Father")
     assert.Equal(uniq[1], "3 My Son")
 
-    numOccurrencesStrings = false
-    onlyOccurrencesStrings = false
-    numFields = 0
+    Options.numOccurrencesStrings = false
+    Options.onlyOccurrencesStrings = false
+    Options.numFields = 0
 }
 
 func TestGetOutputSlice3(t *testing.T) {
     assert := assert.New(t)
 
-    onlyNotOccurrencesStrings = true
-    numChars = 1
-    caseInsensitive = true
+    Options.onlyNotOccurrencesStrings = true
+    Options.numChars = 1
+    Options.caseInsensitive = true
 
     slice := []string{"M Father", "Y father", "O Mother", "M Son", "T Dad", "y SON", "O sOn"}
 
@@ -54,18 +54,18 @@ func TestGetOutputSlice3(t *testing.T) {
     assert.Equal(uniq[1], "M Son")
     assert.Equal(uniq[2], "T Dad")
 
-    onlyNotOccurrencesStrings = false
-    numChars = 0
-    caseInsensitive = false
+    Options.onlyNotOccurrencesStrings = false
+    Options.numChars = 0
+    Options.caseInsensitive = false
 }
 
 func TestGetOutputSlice4(t *testing.T) {
     assert := assert.New(t)
 
-    numFields = 1
-    numChars = 2
-    caseInsensitive = true
-    numOccurrencesStrings = true
+    Options.numFields = 1
+    Options.numChars = 2
+    Options.caseInsensitive = true
+    Options.numOccurrencesStrings = true
 
     slice := []string{"Pr M Father", "MR Y father", "FR O Mother", "NR M Son", "DR T Dad", "XR y SON", "Sr O sOn"}
 
@@ -78,8 +78,8 @@ func TestGetOutputSlice4(t *testing.T) {
     assert.Equal(uniq[4], "2 XR y SON")
     
 
-    numFields = 0
-    numChars = 0
-    caseInsensitive = false
-    numOccurrencesStrings = false
+    Options.numFields = 0
+    Options.numChars = 0
+    Options.caseInsensitive = false
+    Options.numOccurrencesStrings = false
 }
