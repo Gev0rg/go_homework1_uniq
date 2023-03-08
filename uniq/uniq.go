@@ -18,7 +18,7 @@ var Options struct {
 }
 
 // Check all flags
-func CheckFlags() (error) {
+func CheckFlags() error {
 	// Init Flags
 	flag.BoolVar(&Options.numOccurrencesStrings, "c", false, "print the number of string occurrences")
 	flag.BoolVar(&Options.onlyOccurrencesStrings, "d", false, "print only occurrences inputStrings")
@@ -100,7 +100,7 @@ func GetOutputSlice(inputStrings []string) []string {
 
 	outputStrings := []string{}
 
-	switch(true) {
+	switch true {
 	case Options.onlyOccurrencesStrings:
 		for i, s := range compareStrings {
 			if numRepeatStrings[i] > 1 {

@@ -1,16 +1,16 @@
 package calc
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestContains (t *testing.T) {
+func TestContains(t *testing.T) {
 	assert := assert.New(t)
 	assert.True(contains("("))
 }
 
-func TestIsCorrectInput (t *testing.T) {
+func TestIsCorrectInput(t *testing.T) {
 	assert := assert.New(t)
 	str := "(10+3) *7"
 	arr, err := IsCorrectInput(str)
@@ -19,38 +19,38 @@ func TestIsCorrectInput (t *testing.T) {
 	assert.Equal(arr[6], "*")
 }
 
-func TestIsEndTrue (t *testing.T) {
+func TestIsEndTrue(t *testing.T) {
 	assert := assert.New(t)
-    assert.True(isEnd("start", "end"))
+	assert.True(isEnd("start", "end"))
 }
 
-func TestIsEndFalse (t *testing.T) {
+func TestIsEndFalse(t *testing.T) {
 	assert := assert.New(t)
-    assert.False(isEnd("/", "end"))
+	assert.False(isEnd("/", "end"))
 }
 
-func TestIsErrorTrue (t *testing.T) {
+func TestIsErrorTrue(t *testing.T) {
 	assert := assert.New(t)
-    assert.True(isError(")", "("))
+	assert.True(isError(")", "("))
 }
 
-func TestIsErrorFalse (t *testing.T) {
+func TestIsErrorFalse(t *testing.T) {
 	assert := assert.New(t)
-    assert.False(isError("(", "("))
+	assert.False(isError("(", "("))
 }
 
-func TestIsOneBasicTrue (t *testing.T) {
+func TestIsOneBasicTrue(t *testing.T) {
 	assert := assert.New(t)
-    assert.True(isOneBasic("(", ")"))
+	assert.True(isOneBasic("(", ")"))
 }
 
-func TestIsOneBasicFalse (t *testing.T) {
+func TestIsOneBasicFalse(t *testing.T) {
 	assert := assert.New(t)
-    assert.False(isOneBasic("(", "end"))
+	assert.False(isOneBasic("(", "end"))
 }
 
 var isEndOfBaseTrueTests = []struct {
-	prev  string
+	prev    string
 	current string
 }{
 	{"+", "-"},
@@ -61,16 +61,16 @@ var isEndOfBaseTrueTests = []struct {
 	{")", "end"},
 }
 
-func TestIsEndOfBaseTrue (t *testing.T) {
+func TestIsEndOfBaseTrue(t *testing.T) {
 	assert := assert.New(t)
 
 	for _, v := range isEndOfBaseTrueTests {
 		assert.True(isEndOfBase(v.prev, v.current))
-    }
+	}
 }
 
 var isEndOfBaseFalseTests = []struct {
-	prev  string
+	prev    string
 	current string
 }{
 	{"start", "end"},
@@ -81,19 +81,19 @@ var isEndOfBaseFalseTests = []struct {
 	{"*", "("},
 }
 
-func TestIsEndOfBaseFalse (t *testing.T) {
+func TestIsEndOfBaseFalse(t *testing.T) {
 	assert := assert.New(t)
 
-    for _, v := range isEndOfBaseFalseTests {
+	for _, v := range isEndOfBaseFalseTests {
 		assert.False(isEndOfBase(v.prev, v.current))
 	}
 }
 
 var CalculateTrueTests = []struct {
-	left  string
+	left      string
 	operation string
-	right string
-	result string
+	right     string
+	result    string
 }{
 	{"5", "+", "3", "8"},
 	{"5", "-", "3", "2"},
@@ -108,13 +108,13 @@ func TestCalculateTrue(t *testing.T) {
 		result, err := calculate(v.left, v.operation, v.right)
 		assert.Nil(err)
 		assert.Equal(result, v.result)
-    }
+	}
 }
 
 var CalculateFalseTests = []struct {
-	left  string
+	left      string
 	operation string
-	right string
+	right     string
 }{
 	{"5", "^", "3"},
 	{"a", "/", "3"},
@@ -128,11 +128,11 @@ func TestCalculateFalse(t *testing.T) {
 	for _, v := range CalculateFalseTests {
 		_, err := calculate(v.left, v.operation, v.right)
 		assert.Error(err)
-    }
+	}
 }
 
 var CalcTrueTests = []struct {
-	slice []string
+	slice  []string
 	result int
 }{
 	{[]string{"start", "1", "+", "3", "*", "5", "end"}, 16},
@@ -142,12 +142,12 @@ var CalcTrueTests = []struct {
 }
 
 func TestCalcTrue(t *testing.T) {
-    assert := assert.New(t)
+	assert := assert.New(t)
 	for _, v := range CalcTrueTests {
 		result, err := Calc(v.slice)
-        assert.Nil(err)
-        assert.Equal(result, v.result)
-    }
+		assert.Nil(err)
+		assert.Equal(result, v.result)
+	}
 }
 
 var CalcFalseTests = []struct {
@@ -159,9 +159,9 @@ var CalcFalseTests = []struct {
 }
 
 func TestCalcFalse(t *testing.T) {
-    assert := assert.New(t)
+	assert := assert.New(t)
 	for _, v := range CalcFalseTests {
 		_, err := Calc(v.slice)
-        assert.Error(err)
-    }
+		assert.Error(err)
+	}
 }
