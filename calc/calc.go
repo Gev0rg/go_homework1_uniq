@@ -37,21 +37,21 @@ var operationPriority = map[string]int{
 	"~": 4,
 }
 
-func getStringNumber(expression string, position *int) string {
+func getStringNumber(expression string, position int) (string, int) {
 	var strNum string
 	splitExpression := strings.Split(expression, "")
 
-	for ; *position < len(splitExpression); *position++ {
-		num := splitExpression[*position]
+	for ; position < len(splitExpression); position++ {
+		num := splitExpression[position]
 		if _, err := strconv.Atoi(num); err == nil {
 			strNum += num
 		} else {
-			*position--
+			position--
 			break
 		}
 	}
 
-	return strNum
+	return strNum, position
 }
 
 func toPostfix(infixExpression string) ([]string, error) {
@@ -66,7 +66,9 @@ func toPostfix(infixExpression string) ([]string, error) {
 
 		switch {
 		case isInt == nil:
-			postfixExpression = append(postfixExpression, getStringNumber(infixExpression, &position))
+			var appendNumber string
+			appendNumber, position = getStringNumber(infixExpression, position)
+			postfixExpression = append(postfixExpression, appendNumber)
 		case cur == "(":
 			stack.Push(cur)
 		case cur == ")":

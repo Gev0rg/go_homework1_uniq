@@ -17,7 +17,7 @@ func TestGetStringNumber(t *testing.T) {
 	}
 
 	for _, test := range forGetNumberFromString {
-		result := getStringNumber(test.expression, &test.position)
+		result,_ := getStringNumber(test.expression, test.position)
 		require.Equal(t, test.result, result, "Should get number from string")
 	}
 }
