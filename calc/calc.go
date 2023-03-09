@@ -2,165 +2,188 @@ package calc
 
 import (
 	"errors"
-	"fmt"
-	"github.com/golang-collections/collections/stack"
 	"strconv"
 	"strings"
 )
 
-var runeContainer = [8]string{"(", ")", "+", "-", "*", "/", "start", "end"}
-
-// contains checks if a string is present in a slice
-func contains(str string) bool {
-	for _, v := range runeContainer {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
+type Stack struct {
+	stack []string
 }
 
-func IsCorrectInput(str string) ([]string, error) {
-	startArr := strings.Split(strings.ReplaceAll(str, " ", ""), "")
-	finishArr := []string{"start"}
-	prevIsNum := false
-	for _, v := range startArr {
-		if contains(v) {
-			prevIsNum = false
-			finishArr = append(finishArr, v)
-			continue
-		}
-		if _, err := strconv.Atoi(v); err != nil {
-			return nil, errors.New("invalid input " + v)
-		}
-		if prevIsNum {
-			finishArr[len(finishArr)-1] += v
-			continue
-		}
-		finishArr = append(finishArr, v)
-		prevIsNum = true
-	}
-	finishArr = append(finishArr, "end")
-	return finishArr, nil
+func (s *Stack) Push(value string) {
+	s.stack = append(s.stack, value)
 }
 
-func isEnd(prev string, current string) bool {
-	return prev == "start" && current == "end"
+func (s *Stack) Pop() string {
+	top := s.stack[len(s.stack)-1]
+	s.stack = s.stack[:len(s.stack)-1]
+	return top
 }
 
-func isError(prev string, current string) bool {
-	return prev == "start" && current == ")" ||
-		prev == "(" && current == "end" ||
-		prev == ")" && current == "("
+func (s *Stack) Peek() string {
+	return s.stack[len(s.stack)-1]
 }
 
-func isOneBasic(prev string, current string) bool {
-	return prev == "(" && current == ")"
+func (s *Stack) isEmpty() bool {
+	return len(s.stack) == 0
 }
 
-func isEndOfBase(prev string, current string) bool {
-	return prev == "+" && current == "+" ||
-		prev == "+" && current == "-" ||
-		prev == "+" && current == ")" ||
-		prev == "+" && current == "end" ||
-		prev == "*" && current == "+" ||
-		prev == "*" && current == "-" ||
-		prev == "*" && current == "*" ||
-		prev == "*" && current == "/" ||
-		prev == "*" && current == ")" ||
-		prev == "*" && current == "end" ||
-		prev == ")" && current == "+" ||
-		prev == ")" && current == "-" ||
-		prev == ")" && current == "*" ||
-		prev == ")" && current == "/" ||
-		prev == ")" && current == ")" ||
-		prev == ")" && current == "end" ||
-		prev == "-" && current == "+" ||
-		prev == "-" && current == "-" ||
-		prev == "-" && current == ")" ||
-		prev == "-" && current == "end" ||
-		prev == "/" && current == "+" ||
-		prev == "/" && current == "-" ||
-		prev == "/" && current == "*" ||
-		prev == "/" && current == "/" ||
-		prev == "/" && current == ")" ||
-		prev == "/" && current == "end"
+var operationPriority = map[string]int{
+	"(": 1,
+	"+": 2,
+	"-": 2,
+	"*": 3,
+	"/": 3,
+	"~": 4,
 }
 
-func calculate(firstArg string, operation string, secondArg string) (string, error) {
-	result := ""
-	left, err := strconv.Atoi(firstArg)
-	if err != nil {
-		return result, err
-	}
-	right, err := strconv.Atoi(secondArg)
-	if err != nil {
-		return result, err
-	}
-	switch operation {
-	case "+":
-		result = fmt.Sprint(left + right)
-	case "-":
-		result = fmt.Sprint(left - right)
-	case "*":
-		result = fmt.Sprint(left * right)
-	case "/":
-		if right != 0 {
-			result = fmt.Sprint(left / right)
+func getStringNumber(expression string, position *int) string {
+	var strNum string
+	splitExpression := strings.Split(expression, "")
+
+	for ; *position < len(splitExpression); *position++ {
+		num := splitExpression[*position]
+		if _, err := strconv.Atoi(num); err == nil {
+			strNum += num
 		} else {
-			err = errors.New("Invalid operation " + operation)
+			*position--
+			break
 		}
-	default:
-		err = errors.New("Invalid operation " + operation)
 	}
 
-	return result, err
+	return strNum
 }
 
-func Calc(arrFromStr []string) (int, error) {
-	result := 0
-	var err error = nil
-	prev := arrFromStr[0]
-	var stack stack.Stack
-	stack.Push(prev)
+func toPostfix(infixExpression string) ([]string, error) {
+	var stack Stack
+	var postfixExpression []string
+	splitInfixExpression := strings.Split(infixExpression, "")
 
-	for i := 1; i < len(arrFromStr); i++ {
-		if contains(arrFromStr[i]) {
-			if isEnd(prev, arrFromStr[i]) {
-				result, err = strconv.Atoi(fmt.Sprintf("%v", stack.Pop()))
-				break
-			}
-			if isError(prev, arrFromStr[i]) {
-				err = errors.New("invalid input " + arrFromStr[i])
-				break
-			}
-			if isOneBasic(prev, arrFromStr[i]) {
-				exp := stack.Pop()
-				stack.Pop()
-				prev = fmt.Sprintf("%v", stack.Peek())
-				stack.Push(exp)
-				continue
-			}
-			if isEndOfBase(prev, arrFromStr[i]) {
-				secondArg := fmt.Sprintf("%v", stack.Pop())
-				operation := fmt.Sprintf("%v", stack.Pop())
-				firstArg := fmt.Sprintf("%v", stack.Pop())
-				prev = fmt.Sprintf("%v", stack.Peek())
+	for position := 0; position < len(splitInfixExpression); position++ {
+		cur := splitInfixExpression[position]
+		_, isInt := strconv.Atoi(cur)
+		_, isCurInOperation := operationPriority[cur]
 
-				result, err := calculate(firstArg, operation, secondArg)
-				if err != nil {
-					return 0, err
-				}
-
-				stack.Push(result)
-				i--
-				continue
+		switch {
+		case isInt == nil:
+			postfixExpression = append(postfixExpression, getStringNumber(infixExpression, &position))
+		case cur == "(":
+			stack.Push(cur)
+		case cur == ")":
+			for !stack.isEmpty() && stack.Peek() != "(" {
+				postfixExpression = append(postfixExpression, stack.Pop())
 			}
-			prev = arrFromStr[i]
+			if stack.isEmpty() {
+				return nil, errors.New("Invalid ')' in " + strconv.Itoa(position) + " position of expression")
+			}
+			stack.Pop()
+		case isCurInOperation:
+			if cur == "-" && (position == 0 || stack.Peek() == "(") {
+				cur = "~"
+			}
+			for !stack.isEmpty() && operationPriority[stack.Peek()] >= operationPriority[cur] {
+				postfixExpression = append(postfixExpression, stack.Pop())
+			}
+			stack.Push(cur)
 		}
-		stack.Push(arrFromStr[i])
 	}
 
-	return result, err
+	for !stack.isEmpty() {
+		postfixExpression = append(postfixExpression, stack.Pop())
+	}
+
+	return postfixExpression, nil
+}
+
+func execute(first string, operand string, second string) (string, error) {
+	var result int
+
+	left, err := strconv.Atoi(first)
+	if err != nil {
+		return "", errors.New(first + " is not a number")
+	}
+	right, err := strconv.Atoi(second)
+	if err != nil {
+		return "", errors.New(second + " is not a number")
+	}
+
+	switch operand {
+	case "+":
+		result = left + right
+	case "-":
+		result = left - right
+	case "*":
+		result = left * right
+	case "/":
+		if right == 0 {
+			return "", errors.New("division by zero")
+		}
+		result = left / right
+	}
+
+	return strconv.Itoa(result), nil
+}
+
+func calculatePostfix(postfixExpression []string) (string, error) {
+	var stack Stack
+
+	for position := 0; position < len(postfixExpression); position++ {
+		cur := postfixExpression[position]
+
+		if _, err := strconv.Atoi(cur); err == nil {
+			stack.Push(cur)
+		} else if _, isCurInOperation := operationPriority[cur]; isCurInOperation {
+			// if unary '-'
+			if cur == "~" {
+				var top string
+				if stack.isEmpty() {
+					return "", errors.New("Invalid unary '-' in " + strconv.Itoa(position) + " position")
+				}
+				top = stack.Pop()
+
+				exec, err := execute("0", "-", top)
+				if err != nil {
+					return "", err
+				}
+				stack.Push(exec)
+
+				continue
+			}
+
+			if stack.isEmpty() {
+				return "", errors.New("invalid " + cur + " in " + strconv.Itoa(position) + " position of postfix expression")
+			}
+			second := stack.Pop()
+			if stack.isEmpty() {
+				return "", errors.New("invalid " + cur + " in " + strconv.Itoa(position) + " position of postfix expression")
+			}
+			first := stack.Pop()
+
+			exec, err := execute(first, cur, second)
+			if err != nil {
+				return "", err
+			}
+			stack.Push(exec)
+		}
+	}
+
+	if stack.isEmpty() {
+		return "", errors.New("result is not in stack")
+	}
+	return stack.Pop(), nil
+}
+
+func Run(infixExpression string) (string, error) {
+	infixExpression = strings.ReplaceAll(infixExpression, " ", "")
+	postfix, err := toPostfix(infixExpression)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := calculatePostfix(postfix)
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
