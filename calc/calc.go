@@ -78,7 +78,7 @@ func toPostfix(infixExpression string) ([]string, error) {
 			}
 			stack.Pop()
 		case isCurInOperation:
-			if cur == "-" && (position == 0 || stack.Peek() == "(") {
+			if cur == "-" && (position == 0 || splitInfixExpression[position - len(postfixExpression[len(postfixExpression) - 1])] == "(") {
 				cur = "~"
 			}
 			for !stack.isEmpty() && operationPriority[stack.Peek()] >= operationPriority[cur] {
