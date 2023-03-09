@@ -1,174 +1,114 @@
 package calc
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetNumberFromSting(t *testing.T) {
-	pos := 0
-	num := getNumberFromString("156dkj68568", &pos)
-	require.Equal(t, "156", num, "Should get number from string")
+var forGetNumberFromString = []struct {
+	position   int
+	expression string
+	result     string
+}{
+	{0, "156dkj68568", "156"},
 }
 
-// func TestContains(t *testing.T) {
-// 	assert := assert.New(t)
-// 	assert.True(contains("("))
-// }
+func TestGetStringNumber(t *testing.T) {
+	for _, test := range forGetNumberFromString {
+		result := getStringNumber(test.expression, &test.position)
+		require.Equal(t, test.result, result, "Should get number from string")
+	}
+}
 
-// func TestIsCorrectInput(t *testing.T) {
-// 	assert := assert.New(t)
-// 	str := "(10+3) *7"
-// 	arr, err := IsCorrectInput(str)
-// 	assert.Nil(err)
-// 	assert.Equal(arr[2], "10")
-// 	assert.Equal(arr[6], "*")
-// }
+var forToPostfix = []struct {
+	infix   string
+	postfix []string
+	err     error
+}{
+	{"2+2+4567", []string{"2", "2", "+", "4567", "+"}, nil},
+	{"10+4*5/6-3", []string{"10", "4", "5", "*", "6", "/", "+", "3", "-"}, nil},
+	{"(2+2)*)8-13", nil, errors.New("")},
+	{"(2+2)*8-13", []string{"2", "2", "+", "8", "*", "13", "-"}, nil},
+}
 
-// func TestIsEndTrue(t *testing.T) {
-// 	assert := assert.New(t)
-// 	assert.True(isEnd("start", "end"))
-// }
+func TestToPostfix(t *testing.T) {
+	for _, test := range forToPostfix {
+		postfix, err := toPostfix(test.infix)
+		if test.err != nil {
+			require.Error(t, err)
+		} else {
+			require.Equal(t, test.postfix, postfix, "Should get postfix from infix")
+		}
+	}
+}
 
-// func TestIsEndFalse(t *testing.T) {
-// 	assert := assert.New(t)
-// 	assert.False(isEnd("/", "end"))
-// }
+var forToExecute = []struct {
+	first   string
+	operand string
+	second  string
+	result  string
+	err     error
+}{
+	{"5", "+", "2", "7", nil},
+	{"t", "+", "2", "", errors.New("")},
+	{"5", "+", "t", "", errors.New("")},
+	{"7", "-", "3", "4", nil},
+	{"4", "*", "2", "8", nil},
+	{"9", "/", "3", "3", nil},
+	{"4", "/", "0", "", errors.New("")},
+}
 
-// func TestIsErrorTrue(t *testing.T) {
-// 	assert := assert.New(t)
-// 	assert.True(isError(")", "("))
-// }
+func TestExecute(t *testing.T) {
+	for _, test := range forToExecute {
+		result, err := execute(test.first, test.operand, test.second)
+		if test.err != nil {
+			require.Error(t, err)
+		} else {
+			require.Equal(t, test.result, result, "Should get executed")
+		}
+	}
+}
 
-// func TestIsErrorFalse(t *testing.T) {
-// 	assert := assert.New(t)
-// 	assert.False(isError("(", "("))
-// }
+var forCalculatePostfix = []struct {
+	expression []string
+	result     string
+	err        error
+}{
+	{[]string{"2", "2", "+"}, "4", nil},
+	{[]string{"4", "0", "/"}, "", errors.New("")},
+	{[]string{"2", "2", "+", "6", "*", "8", "2", "+", "-"}, "14", nil},
+	{[]string{"2", "~", "2", "+"}, "0", nil},
+}
 
-// func TestIsOneBasicTrue(t *testing.T) {
-// 	assert := assert.New(t)
-// 	assert.True(isOneBasic("(", ")"))
-// }
+func TestCalculatePostfix(t *testing.T) {
+	for _, test := range forCalculatePostfix {
+		result, err := calculatePostfix(test.expression)
+		if test.err != nil {
+			require.Error(t, err)
+		} else {
+			require.Equal(t, test.result, result, "Should get calculated postfix")
+		}
+	}
+}
 
-// func TestIsOneBasicFalse(t *testing.T) {
-// 	assert := assert.New(t)
-// 	assert.False(isOneBasic("(", "end"))
-// }
+var forRun = []struct {
+	expression string
+	result     string
+	err        error
+}{
+	{"2+2", "4", nil},
+	{"4/0", "", errors.New("")},
+}
 
-// var isEndOfBaseTrueTests = []struct {
-// 	prev    string
-// 	current string
-// }{
-// 	{"+", "-"},
-// 	{"-", "-"},
-// 	{"*", "-"},
-// 	{"/", "+"},
-// 	{")", ")"},
-// 	{")", "end"},
-// }
-
-// func TestIsEndOfBaseTrue(t *testing.T) {
-// 	assert := assert.New(t)
-
-// 	for _, v := range isEndOfBaseTrueTests {
-// 		assert.True(isEndOfBase(v.prev, v.current))
-// 	}
-// }
-
-// var isEndOfBaseFalseTests = []struct {
-// 	prev    string
-// 	current string
-// }{
-// 	{"start", "end"},
-// 	{"(", ")"},
-// 	{")", "("},
-// 	{"start", "*"},
-// 	{"(", "+"},
-// 	{"*", "("},
-// }
-
-// func TestIsEndOfBaseFalse(t *testing.T) {
-// 	assert := assert.New(t)
-
-// 	for _, v := range isEndOfBaseFalseTests {
-// 		assert.False(isEndOfBase(v.prev, v.current))
-// 	}
-// }
-
-// var CalculateTrueTests = []struct {
-// 	left      string
-// 	operation string
-// 	right     string
-// 	result    string
-// }{
-// 	{"5", "+", "3", "8"},
-// 	{"5", "-", "3", "2"},
-// 	{"5", "*", "3", "15"},
-// 	{"9", "/", "3", "3"},
-// }
-
-// func TestCalculateTrue(t *testing.T) {
-// 	assert := assert.New(t)
-
-// 	for _, v := range CalculateTrueTests {
-// 		result, err := calculate(v.left, v.operation, v.right)
-// 		assert.Nil(err)
-// 		assert.Equal(result, v.result)
-// 	}
-// }
-
-// var CalculateFalseTests = []struct {
-// 	left      string
-// 	operation string
-// 	right     string
-// }{
-// 	{"5", "^", "3"},
-// 	{"a", "/", "3"},
-// 	{"5", "^", "v"},
-// 	{"6", "/", "0"},
-// }
-
-// func TestCalculateFalse(t *testing.T) {
-// 	assert := assert.New(t)
-
-// 	for _, v := range CalculateFalseTests {
-// 		_, err := calculate(v.left, v.operation, v.right)
-// 		assert.Error(err)
-// 	}
-// }
-
-// var CalcTrueTests = []struct {
-// 	slice  []string
-// 	result int
-// }{
-// 	{[]string{"start", "1", "+", "3", "*", "5", "end"}, 16},
-// 	{[]string{"start", "(", "1", "+", "3", ")", "*", "5", "end"}, 20},
-// 	{[]string{"start", "(", "1", "+", "3", ")", "*", "(", "5", "-", "4", ")", "end"}, 4},
-// 	{[]string{"start", "(", "1", ")", "+", "3", "*", "(", "5", "-", "4", ")", "end"}, 4},
-// }
-
-// func TestCalcTrue(t *testing.T) {
-// 	assert := assert.New(t)
-// 	for _, v := range CalcTrueTests {
-// 		result, err := Calc(v.slice)
-// 		assert.Nil(err)
-// 		assert.Equal(result, v.result)
-// 	}
-// }
-
-// var CalcFalseTests = []struct {
-// 	slice []string
-// }{
-// 	{[]string{"start", ")", "1", "+", "3", ")", "*", "5", "end"}},
-// 	{[]string{"start", "(", "1", "+", "(", "3", ")", "*", "5", "end"}},
-// 	{[]string{"start", "(", "1", "+", "(", "b", ")", "*", "5", "end"}},
-// }
-
-// func TestCalcFalse(t *testing.T) {
-// 	assert := assert.New(t)
-// 	for _, v := range CalcFalseTests {
-// 		_, err := Calc(v.slice)
-// 		assert.Error(err)
-// 	}
-// }
+func TestRun(t *testing.T) {
+	for _, test := range forRun {
+		result, err := Run(test.expression)
+		if test.err != nil {
+			require.Error(t, err)
+		} else {
+			require.Equal(t, test.result, result, "Should get calculated postfix")
+		}
+	}
+}
