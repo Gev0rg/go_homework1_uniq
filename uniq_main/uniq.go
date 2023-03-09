@@ -10,8 +10,9 @@ import (
 )
 
 func main() {
+	var options uniq.Options
 	// Check for having the flags
-	if err := uniq.CheckFlags(); err != nil {
+	if err := options.CheckFlags(); err != nil {
 		fmt.Println("Flag check error: ", err.Error())
 	}
 
@@ -58,7 +59,7 @@ func main() {
 	}
 
 	// Get the output strings
-	outputStrings := uniq.GetOutputSlice(inputStrings)
+	outputStrings := uniq.GetOutputSlice(inputStrings, options)
 
 	for _, s := range outputStrings {
 		fmt.Fprintln(out, s)
